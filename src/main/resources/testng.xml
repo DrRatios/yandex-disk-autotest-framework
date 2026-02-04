@@ -1,0 +1,28 @@
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+<suite name="Yandex Disk API Tests" verbose="1">
+
+    <test name="Auth Tests">
+        <classes>
+            <class name="yandex.disk.tests.auth.AuthTest"/>
+        </classes>
+    </test>
+
+    <test name="Folder Operations Tests">
+        <classes>
+            <class name="yandex.disk.tests.resources.FolderOperationsTests"/>
+        </classes>
+    </test>
+
+    <test name="File Operations Tests">
+        <classes>
+            <class name="yandex.disk.tests.resources.FileOperationsTests"/>
+        </classes>
+    </test>
+
+    <test name="Trash Operations Tests">
+        <classes>
+            <class name="yandex.disk.tests.trash.TrashOperationsTests"/>
+        </classes>
+    </test>
+
+</suite>
