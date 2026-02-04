@@ -7,6 +7,10 @@ import org.testng.annotations.Test;
 import yandex.disk.steps.AuthSteps;
 import yandex.disk.tests.BaseTest;
 
+import static yandex.disk.tests.Groups.NEGATIVE;
+import static yandex.disk.tests.Groups.POSITIVE;
+
+
 @Feature("Авторизация YandexDisk API")
 public class AuthTest extends BaseTest {
 
@@ -17,7 +21,7 @@ public class AuthTest extends BaseTest {
         authSteps = new AuthSteps();
     }
 
-    @Test
+    @Test(groups = POSITIVE)
     @Story("Успешная авторизация")
     @Severity(SeverityLevel.BLOCKER)
     @Description("Проверка авторизации с валидным токеном")
@@ -27,7 +31,7 @@ public class AuthTest extends BaseTest {
         authSteps.validateSuccessResponse(response);
     }
 
-    @Test
+    @Test(groups = NEGATIVE)
     @Story("Неуспешная авторизация")
     @Severity(SeverityLevel.CRITICAL)
     @Description("Проверка авторизации с пустым токеном")
@@ -36,7 +40,7 @@ public class AuthTest extends BaseTest {
         authSteps.validateUnauthorizedResponse(response);
     }
 
-    @Test
+    @Test(groups = NEGATIVE)
     @Story("Неуспешная авторизация")
     @Severity(SeverityLevel.CRITICAL)
     @Description("Проверка авторизации с невалидным токеном")

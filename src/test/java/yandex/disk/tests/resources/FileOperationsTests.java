@@ -1,15 +1,20 @@
 package yandex.disk.tests.resources;
 
+import com.aleksgolds.yandex.disk.data.json.CopyResourceRequestDto;
 import io.qameta.allure.*;
 import io.restassured.response.Response;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import yandex.disk.steps.FileSteps;
 import yandex.disk.steps.FolderSteps;
 import yandex.disk.tests.BaseTest;
 
 import java.io.File;
+
+import static yandex.disk.tests.Groups.NEGATIVE;
+import static yandex.disk.tests.Groups.POSITIVE;
 
 @Feature("Операции с файлами")
 public class FileOperationsTests extends BaseTest {
@@ -19,6 +24,16 @@ public class FileOperationsTests extends BaseTest {
     private String testFolderPath;
     private String testFilePath;
     private File testFile;
+
+    @DataProvider(name = "invalidFilePaths")
+    public Object[][] invalidFilePaths() {
+        return new Object[][]{
+                {""},
+                {"!№;%:?*()_++"},
+                {"///"},
+                {null}
+        };
+    }
 
     @BeforeMethod
     @Step("Подготовка тестовых данных")
@@ -36,7 +51,7 @@ public class FileOperationsTests extends BaseTest {
         folderSteps.createFolder(testFolderPath);
     }
 
-    @Test
+    @Test(groups = POSITIVE)
     @Story("Загрузка файлов")
     @Severity(SeverityLevel.CRITICAL)
     @Description("Проверка получения ссылки для загрузки файла")
@@ -45,7 +60,7 @@ public class FileOperationsTests extends BaseTest {
         fileSteps.validateUploadUrlResponse(response);
     }
 
-    @Test
+    @Test(groups = POSITIVE)
     @Story("Скачивание файлов")
     @Severity(SeverityLevel.CRITICAL)
     @Description("Проверка получения ссылки для скачивания файла")
@@ -56,7 +71,7 @@ public class FileOperationsTests extends BaseTest {
         fileSteps.validateDownloadUrlResponse(response);
     }
 
-    @Test
+    @Test(groups = POSITIVE)
     @Story("Копирование файлов")
     @Severity(SeverityLevel.NORMAL)
     @Description("Проверка копирования файла")
@@ -71,7 +86,7 @@ public class FileOperationsTests extends BaseTest {
         fileSteps.validateFileCopied(response);
     }
 
-    @Test
+    @Test(groups = POSITIVE)
     @Story("Копирование файлов")
     @Severity(SeverityLevel.NORMAL)
     @Description("Проверка копирования файла с перезаписью")
@@ -88,7 +103,7 @@ public class FileOperationsTests extends BaseTest {
         fileSteps.validateFileCopied(response);
     }
 
-    @Test
+    @Test(groups = POSITIVE)
     @Story("Загрузка файлов")
     @Severity(SeverityLevel.NORMAL)
     @Description("Проверка загрузки файла с последующим скачиванием")
@@ -103,7 +118,7 @@ public class FileOperationsTests extends BaseTest {
         fileSteps.validateDownloadUrlResponse(downloadUrlResponse);
     }
 
-    @Test
+    @Test(groups = NEGATIVE)
     @Story("Обработка ошибок")
     @Severity(SeverityLevel.NORMAL)
     @Description("Проверка получения ссылки для несуществующего файла")
@@ -114,16 +129,28 @@ public class FileOperationsTests extends BaseTest {
         fileSteps.verifyStatusCode(response, 404);
     }
 
-    @AfterMethod
-    @Step("Очистка тестовых данных")
-    public void cleanup() {
-        try {
-            folderSteps.deleteFolder(testFolderPath, true);
-        } catch (Exception e) {
-            System.out.println("Ошибка при удалении папки: " + e.getMessage());
-        }
 
-        fileSteps.deleteLocalFile(testFile);
+    @Test(groups = NEGATIVE, dataProvider = "invalidFilePaths")
+    @Story("Загрузка файлов")
+    @Severity(SeverityLevel.NORMAL)
+    @Description("Получение upload URL с невалидным path")
+    public void getUploadUrlWithInvalidPath(String path) {
+        Response response = fileSteps.getUploadUrl(path);
+        fileSteps.verifyStatusCode(response, 400);
+    }
+
+    @Test(groups = NEGATIVE)
+    @Story("Копирование файлов")
+    @Severity(SeverityLevel.NORMAL)
+    @Description("Копирование несуществующего файла")
+    public void copyNonExistentFile() {
+        String from = testFolderPath + "/missing.txt";
+        String to = testFolderPath + "/copy.txt";
+
+        CopyResourceRequestDto request = fileSteps.createCopyRequest(from, to, true);
+        Response response = fileSteps.copyFile(request);
+
+        fileSteps.verifyStatusCode(response, 404);
     }
 
     @Step("Загрузка тестового файла на сервер")
@@ -134,6 +161,16 @@ public class FileOperationsTests extends BaseTest {
         String uploadUrl = fileSteps.extractUploadHref(uploadUrlResponse);
         fileSteps.uploadFile(uploadUrl, testFile.getAbsolutePath());
 
+    }
+
+    @AfterMethod(alwaysRun = true)
+    @Step("Очистка тестовых данных")
+    public void cleanup() {
+        try {
+            folderSteps.deleteFolder(testFolderPath, true);
+        } catch (Exception ignored) {
+        }
+        fileSteps.deleteLocalFile(testFile);
     }
 
 }

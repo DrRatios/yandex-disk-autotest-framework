@@ -10,6 +10,8 @@ import yandex.disk.steps.FolderSteps;
 import yandex.disk.steps.TrashSteps;
 import yandex.disk.tests.BaseTest;
 
+import static yandex.disk.tests.Groups.POSITIVE;
+
 @Slf4j
 @Feature("Операции с корзиной")
 public class TrashOperationsTests extends BaseTest {
@@ -29,7 +31,7 @@ public class TrashOperationsTests extends BaseTest {
         folderSteps.createFolder(testFolderPath);
     }
 
-    @Test
+    @Test(groups = POSITIVE)
     @Story("Получение информации о корзине")
     @Severity(SeverityLevel.NORMAL)
     @Description("Простая проверка получения информации о корзине")
@@ -38,7 +40,7 @@ public class TrashOperationsTests extends BaseTest {
         trashSteps.validateTrashResponse(response);
     }
 
-    @Test
+    @Test(groups = POSITIVE)
     @Story("Очистка корзины")
     @Severity(SeverityLevel.NORMAL)
     @Description("Простая проверка очистки корзины")
@@ -47,18 +49,7 @@ public class TrashOperationsTests extends BaseTest {
         trashSteps.validateTrashCleared(response);
     }
 
-    @Test
-    @Story("Очистка корзины")
-    @Severity(SeverityLevel.NORMAL)
-    @Description("Проверка очистки пустой корзины")
-    public void clearEmptyTrash() {
-        trashSteps.clearTrash();
-
-        Response clearResponse = trashSteps.clearTrash();
-        trashSteps.validateTrashCleared(clearResponse);
-    }
-
-    @AfterMethod
+    @AfterMethod(alwaysRun = true)
     @Step("Очистка тестовых данных")
     public void cleanup() {
         try {

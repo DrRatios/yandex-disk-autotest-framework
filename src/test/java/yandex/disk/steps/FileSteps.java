@@ -14,6 +14,7 @@ import static com.aleksgolds.yandex.disk.helpers.CustomAssertions.*;
 
 public class FileSteps {
 
+
     @Step("Получение ссылки для загрузки файла {path}")
     public Response getUploadUrl(String path) {
         Response response = YandexDiskApiClient.getUploadUrl(path);

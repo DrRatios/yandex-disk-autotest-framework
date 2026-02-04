@@ -4,13 +4,29 @@ import io.qameta.allure.*;
 import io.restassured.response.Response;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import yandex.disk.steps.FolderSteps;
+import yandex.disk.tests.BaseTest;
 
-public class FolderOperationsTests {
+import static yandex.disk.tests.Groups.NEGATIVE;
+import static yandex.disk.tests.Groups.POSITIVE;
 
+public class FolderOperationsTests extends BaseTest {
     private FolderSteps folderSteps;
     private String testFolderPath;
+
+    @DataProvider(name = "invalidFolderPaths")
+    public Object[][] invalidFolderPaths() {
+        return new Object[][]{
+                {""},
+                {" "},
+                {"///"},
+                {"//invalid//path"},
+                {"../folder"},
+                {null}
+        };
+    }
 
     @BeforeMethod
     @Step("Подготовка тестовых данных")
@@ -19,7 +35,7 @@ public class FolderOperationsTests {
         testFolderPath = folderSteps.generateUniqueFolderName("test_folder");
     }
 
-    @Test
+    @Test(groups = POSITIVE)
     @Story("Создание папки")
     @Severity(SeverityLevel.CRITICAL)
     @Description("Проверка создания новой папки")
@@ -28,7 +44,7 @@ public class FolderOperationsTests {
         folderSteps.validateFolderCreated(response);
     }
 
-    @Test
+    @Test(groups = NEGATIVE)
     @Story("Создание папки")
     @Severity(SeverityLevel.NORMAL)
     @Description("Проверка создания существующей папки")
@@ -38,7 +54,7 @@ public class FolderOperationsTests {
         folderSteps.validateConflictResponse(response);
     }
 
-    @Test
+    @Test(groups = POSITIVE)
     @Story("Удаление папки")
     @Severity(SeverityLevel.CRITICAL)
     @Description("Проверка удаления папки в корзину")
@@ -48,7 +64,7 @@ public class FolderOperationsTests {
         folderSteps.validateFolderDeleted(response);
     }
 
-    @Test
+    @Test(groups = POSITIVE)
     @Story("Удаление папки")
     @Severity(SeverityLevel.CRITICAL)
     @Description("Проверка полного удаления папки")
@@ -58,7 +74,7 @@ public class FolderOperationsTests {
         folderSteps.validateFolderDeleted(response);
     }
 
-    @Test
+    @Test(groups = NEGATIVE)
     @Story("Удаление папки")
     @Severity(SeverityLevel.NORMAL)
     @Description("Проверка удаления несуществующей папки")
@@ -68,7 +84,25 @@ public class FolderOperationsTests {
         folderSteps.validateNotFoundResponse(response);
     }
 
-    @AfterMethod
+    @Test(groups = NEGATIVE, dataProvider = "invalidFolderPaths")
+    @Story("Создание папки")
+    @Severity(SeverityLevel.NORMAL)
+    @Description("Попытка создания папки с невалидным path")
+    public void createFolderWithInvalidPath(String path) {
+        Response response = folderSteps.createFolder(path);
+        folderSteps.validateClientError(response);
+    }
+
+    @Test(groups = NEGATIVE, dataProvider = "invalidFolderPaths")
+    @Story("Удаление папки")
+    @Severity(SeverityLevel.NORMAL)
+    @Description("Попытка удаления папки с невалидным path")
+    public void deleteFolderWithInvalidPath(String path) {
+        Response response = folderSteps.deleteFolder(path, false);
+        folderSteps.validateClientError(response);
+    }
+
+    @AfterMethod(alwaysRun = true)
     @Step("Очистка тестовых данных")
     public void cleanup() {
         try {

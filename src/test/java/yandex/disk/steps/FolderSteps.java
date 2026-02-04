@@ -55,4 +55,11 @@ public class FolderSteps {
         assertTrue(statusCode == 202 || statusCode == 204,
                 "Статус код должен быть 202 или 204 при удалении папки, фактический: " + statusCode);
     }
+
+    @Step("Проверка ошибки клиента (4xx)")
+    public void validateClientError(Response response) {
+        int statusCode = response.getStatusCode();
+        assertTrue(statusCode >= 400 && statusCode < 500,
+                "Ожидалась ошибка клиента 4xx, фактический: " + statusCode);
+    }
 }
